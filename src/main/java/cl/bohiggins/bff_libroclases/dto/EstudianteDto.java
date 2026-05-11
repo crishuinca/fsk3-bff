@@ -9,6 +9,7 @@ public record EstudianteDto(
 		String nombres,
 		String apellidoPaterno,
 		String apellidoMaterno,
-		String email
+		String email,
+		CursoDto curso
 ) {
 }

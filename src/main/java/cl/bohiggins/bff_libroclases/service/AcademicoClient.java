@@ -23,6 +23,14 @@ public class AcademicoClient {
 				.body(EstudianteDto.class);
 	}
 
+	@CircuitBreaker(name = "academico", fallbackMethod = "estudiantePorRutFallback")
+	public EstudianteDto obtenerEstudiantePorRut(String rut) {
+		return cliente.get()
+				.uri("/estudianteByRut/{rut}", rut)
+				.retrieve()
+				.body(EstudianteDto.class);
+	}
+
 	@CircuitBreaker(name = "academico", fallbackMethod = "cursoFallback")
 	public CursoDto obtenerCurso(Long id) {
 		return cliente.get()
@@ -32,7 +40,11 @@ public class AcademicoClient {
 	}
 
 	public EstudianteDto estudianteFallback(Long id, Throwable t) {
-		return new EstudianteDto(id, "(no disponible)", "Desconocido", "Desconocido", "Desconocido", "");
+		return new EstudianteDto(id, "(no disponible)", "Desconocido", "Desconocido", "Desconocido", "", null);
+	}
+
+	public EstudianteDto estudiantePorRutFallback(String rut, Throwable t) {
+		return new EstudianteDto(null, rut, "Desconocido", "Desconocido", "Desconocido", "", null);
 	}
 
 	public CursoDto cursoFallback(Long id, Throwable t) {
