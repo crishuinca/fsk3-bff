@@ -3,9 +3,11 @@ package cl.bohiggins.bff_libroclases.service;
 import cl.bohiggins.bff_libroclases.dto.AnotacionDetalleDto;
 import cl.bohiggins.bff_libroclases.dto.AnotacionCreateRequest;
 import cl.bohiggins.bff_libroclases.dto.AnotacionDto;
+import cl.bohiggins.bff_libroclases.dto.AnotacionMsRequest;
 import cl.bohiggins.bff_libroclases.dto.AsistenciaDetalleDto;
 import cl.bohiggins.bff_libroclases.dto.AsistenciaCreateRequest;
 import cl.bohiggins.bff_libroclases.dto.AsistenciaDto;
+import cl.bohiggins.bff_libroclases.dto.AsistenciaMsRequest;
 import cl.bohiggins.bff_libroclases.dto.CursoDto;
 import cl.bohiggins.bff_libroclases.dto.EstudianteDto;
 import cl.bohiggins.bff_libroclases.dto.PerfilEstudianteDto;
@@ -65,10 +67,37 @@ public class LibroClasesService {
 	}
 
 	public AnotacionDto crearAnotacion(AnotacionCreateRequest request) {
-		return asistenciaClient.crearAnotacion(request);
+		Long cursoId = obtenerCursoIdDesdeEstudiante(request.estudianteId());
+		AnotacionMsRequest requestMs = new AnotacionMsRequest(
+				cursoId,
+				request.estudianteId(),
+				request.fecha(),
+				request.tipo(),
+				request.descripcion(),
+				request.registradaPor()
+		);
+		return asistenciaClient.crearAnotacion(requestMs);
 	}
 
 	public AsistenciaDto crearAsistencia(AsistenciaCreateRequest request) {
-		return asistenciaClient.crearAsistencia(request);
+		Long cursoId = obtenerCursoIdDesdeEstudiante(request.estudianteId());
+		AsistenciaMsRequest requestMs = new AsistenciaMsRequest(
+				cursoId,
+				request.estudianteId(),
+				request.fecha(),
+				request.estado(),
+				request.observacion(),
+				request.registradaPor()
+		);
+		return asistenciaClient.crearAsistencia(requestMs);
+	}
+
+	private Long obtenerCursoIdDesdeEstudiante(Long estudianteId) {
+		EstudianteDto estudiante = academicoClient.obtenerEstudiante(estudianteId);
+		CursoDto curso = obtenerCursoDesdeEstudiante(estudiante);
+		if (curso.id() == null) {
+			throw new IllegalArgumentException("El estudiante no tiene curso asociado.");
+		}
+		return curso.id();
 	}
 }

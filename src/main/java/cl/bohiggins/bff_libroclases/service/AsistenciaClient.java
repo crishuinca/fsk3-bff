@@ -1,9 +1,9 @@
 package cl.bohiggins.bff_libroclases.service;
 
 import cl.bohiggins.bff_libroclases.dto.AnotacionDto;
-import cl.bohiggins.bff_libroclases.dto.AnotacionCreateRequest;
+import cl.bohiggins.bff_libroclases.dto.AnotacionMsRequest;
 import cl.bohiggins.bff_libroclases.dto.AsistenciaDto;
-import cl.bohiggins.bff_libroclases.dto.AsistenciaCreateRequest;
+import cl.bohiggins.bff_libroclases.dto.AsistenciaMsRequest;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,7 +53,7 @@ public class AsistenciaClient {
 				.body(new ParameterizedTypeReference<List<AsistenciaDto>>() {});
 	}
 
-	public AnotacionDto crearAnotacion(AnotacionCreateRequest request) {
+	public AnotacionDto crearAnotacion(AnotacionMsRequest request) {
 		return cliente.post()
 				.uri("/addAnotacion")
 				.body(request)
@@ -61,7 +61,7 @@ public class AsistenciaClient {
 				.body(AnotacionDto.class);
 	}
 
-	public AsistenciaDto crearAsistencia(AsistenciaCreateRequest request) {
+	public AsistenciaDto crearAsistencia(AsistenciaMsRequest request) {
 		return cliente.post()
 				.uri("/addAsistencia")
 				.body(request)
