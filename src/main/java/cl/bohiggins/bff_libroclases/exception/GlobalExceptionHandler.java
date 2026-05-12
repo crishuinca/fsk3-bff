@@ -15,35 +15,37 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+	private static final String ERROR = "error";
+
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<Map<String, String>> negocio(IllegalArgumentException ex) {
-		return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+		return ResponseEntity.badRequest().body(Map.of(ERROR, ex.getMessage()));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<Map<String, String>> validacion(MethodArgumentNotValidException ex) {
 		StringBuilder msg = new StringBuilder();
 		for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
-			if (msg.length() > 0) {
+			if (!msg.isEmpty()) {
 				msg.append(" | ");
 			}
 			msg.append(fe.getField()).append(": ").append(fe.getDefaultMessage());
 		}
-		return ResponseEntity.badRequest().body(Map.of("error", msg.toString()));
+		return ResponseEntity.badRequest().body(Map.of(ERROR, msg.toString()));
 	}
 
 	@ExceptionHandler(HttpClientErrorException.class)
 	public ResponseEntity<Map<String, String>> errorClienteAguasArriba(HttpClientErrorException ex) {
-		return ResponseEntity.status(ex.getStatusCode()).body(Map.of("error", "Error en microservicio: " + ex.getMessage()));
+		return ResponseEntity.status(ex.getStatusCode()).body(Map.of(ERROR, "Error en microservicio: " + ex.getMessage()));
 	}
 
 	@ExceptionHandler(HttpServerErrorException.class)
 	public ResponseEntity<Map<String, String>> errorServidorAguasArriba(HttpServerErrorException ex) {
-		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("error", "Falla del microservicio: " + ex.getMessage()));
+		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(ERROR, "Falla del microservicio: " + ex.getMessage()));
 	}
 
 	@ExceptionHandler(ResourceAccessException.class)
 	public ResponseEntity<Map<String, String>> errorRed(ResourceAccessException ex) {
-		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", "Microservicio no disponible."));
+		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(ERROR, "Microservicio no disponible."));
 	}
 }
