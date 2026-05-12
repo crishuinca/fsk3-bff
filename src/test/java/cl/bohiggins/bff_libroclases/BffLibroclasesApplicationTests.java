@@ -8,6 +8,7 @@ class BffLibroclasesApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// Verifica que el contexto de Spring Boot cargue correctamente.
 	}
 
 }

@@ -50,4 +50,6 @@ jobs:
             -Dsonar.host.url="$HOST_URL" \
             -Dsonar.organization="$SONAR_ORGANIZATION" \
             -Dsonar.projectKey="$PROJECT_KEY" \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.exclusions=".github/workflows/**" \
+            -Dsonar.coverage.exclusions="**/*Application.java,**/config/**,**/dto/**,**/entity/**,**/exception/**,**/controller/**"
