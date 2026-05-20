@@ -48,4 +48,27 @@ class AccesoEstudianteServiceTest {
 
 		assertDoesNotThrow(() -> accesoEstudianteService.validarAccesoPorEstudianteId("profesor1", 99L));
 	}
+
+	@Test
+	void alumnoSinEstudianteId_lanzaAccesoDenegado() {
+		Usuario alumno = new Usuario();
+		alumno.setNombreUsuario("alumno1");
+		alumno.setRol(RolUsuario.ALUMNO);
+		when(usuarioRepository.findByNombreUsuarioIgnoreCase("alumno1")).thenReturn(Optional.of(alumno));
+
+		assertThrows(AccessDeniedException.class,
+				() -> accesoEstudianteService.validarAccesoPorEstudianteId("alumno1", 1L));
+	}
+
+	@Test
+	void alumnoNoPuedeBuscarPorRut() {
+		Usuario alumno = new Usuario();
+		alumno.setNombreUsuario("alumno1");
+		alumno.setRol(RolUsuario.ALUMNO);
+		alumno.setEstudianteId(1L);
+		when(usuarioRepository.findByNombreUsuarioIgnoreCase("alumno1")).thenReturn(Optional.of(alumno));
+
+		assertThrows(AccessDeniedException.class,
+				() -> accesoEstudianteService.validarBusquedaPorRut("alumno1"));
+	}
 }

@@ -167,6 +167,28 @@ class LibroClasesServiceTest {
 	}
 
 	@Test
+	void crearAsistencia_completaCursoAntesDeEnviarAMicroservicio() {
+		EstudianteDto estudiante = crearEstudiante();
+		AsistenciaCreateRequest request = new AsistenciaCreateRequest(
+				2L,
+				LocalDate.of(2026, 5, 8),
+				"PRESENTE",
+				"Sin observacion",
+				"12345678-9"
+		);
+		AsistenciaDto creada = crearAsistencia();
+		when(academicoClient.consultarEstudianteExistente(2L)).thenReturn(estudiante);
+		when(asistenciaClient.crearAsistencia(any(AsistenciaMsRequest.class))).thenReturn(creada);
+
+		AsistenciaDto resultado = servicio.crearAsistencia(request);
+
+		ArgumentCaptor<AsistenciaMsRequest> captor = ArgumentCaptor.forClass(AsistenciaMsRequest.class);
+		verify(asistenciaClient).crearAsistencia(captor.capture());
+		assertSame(creada, resultado);
+		assertEquals(3L, captor.getValue().cursoId());
+	}
+
+	@Test
 	void crearAsistencia_estudianteNoRegistrado_lanzaError() {
 		AsistenciaCreateRequest request = new AsistenciaCreateRequest(
 				99L,

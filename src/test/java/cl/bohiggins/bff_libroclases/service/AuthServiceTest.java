@@ -117,6 +117,83 @@ class AuthServiceTest {
 	}
 
 	@Test
+	void iniciarSesion_usuarioNoExiste_lanzaError() {
+		when(usuarioRepository.findByNombreUsuarioIgnoreCaseOrEmailIgnoreCase("x", "x"))
+				.thenReturn(Optional.empty());
+
+		assertThrows(IllegalArgumentException.class,
+				() -> authService.iniciarSesion(new LoginRequest("x", "clave")));
+	}
+
+	@Test
+	void iniciarSesion_contrasenaIncorrecta_lanzaError() {
+		Usuario usuario = new Usuario();
+		usuario.setPassword("hash");
+		when(usuarioRepository.findByNombreUsuarioIgnoreCaseOrEmailIgnoreCase("admin", "admin"))
+				.thenReturn(Optional.of(usuario));
+		when(passwordEncoder.matches("mala", "hash")).thenReturn(false);
+
+		assertThrows(IllegalArgumentException.class,
+				() -> authService.iniciarSesion(new LoginRequest("admin", "mala")));
+	}
+
+	@Test
+	void crearUsuario_nombreDuplicado_lanzaError() {
+		when(usuarioRepository.existsByNombreUsuarioIgnoreCase("dup")).thenReturn(true);
+
+		assertThrows(IllegalArgumentException.class,
+				() -> authService.crearUsuario(
+						new UsuarioCreateRequest("dup", "dup@colegio.cl", "clave123", RolUsuario.PROFESOR, null, null)));
+	}
+
+	@Test
+	void crearUsuario_emailDuplicado_lanzaError() {
+		when(usuarioRepository.existsByNombreUsuarioIgnoreCase("nuevo")).thenReturn(false);
+		when(usuarioRepository.existsByEmailIgnoreCase("dup@colegio.cl")).thenReturn(true);
+
+		assertThrows(IllegalArgumentException.class,
+				() -> authService.crearUsuario(
+						new UsuarioCreateRequest("nuevo", "dup@colegio.cl", "clave123", RolUsuario.PROFESOR, null, null)));
+	}
+
+	@Test
+	void obtenerUsuarioActual_retornaUsuario() {
+		Usuario usuario = new Usuario();
+		usuario.setId(1L);
+		usuario.setNombreUsuario("inspector");
+		usuario.setEmail("inspector@colegiobo.cl");
+		usuario.setRol(RolUsuario.INSPECTOR);
+		when(usuarioRepository.findByNombreUsuarioIgnoreCase("inspector")).thenReturn(Optional.of(usuario));
+
+		var response = authService.obtenerUsuarioActual("inspector");
+
+		assertEquals("inspector", response.nombreUsuario());
+	}
+
+	@Test
+	void vincularEstudianteAlumno_actualizaId() {
+		Usuario alumno = new Usuario();
+		alumno.setId(3L);
+		alumno.setNombreUsuario("alumno1");
+		alumno.setRol(RolUsuario.ALUMNO);
+		when(usuarioRepository.findById(3L)).thenReturn(Optional.of(alumno));
+		when(academicoClient.consultarEstudianteExistente(10L))
+				.thenReturn(new EstudianteDto(10L, "1-9", "Ana", "Lopez", "Perez", "", null));
+		when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		var response = authService.vincularEstudianteAlumno(3L, 10L);
+
+		assertEquals(10L, response.estudianteId());
+	}
+
+	@Test
+	void obtenerProximoEstudianteId_delegaEnCliente() {
+		when(academicoClient.obtenerProximoEstudianteId()).thenReturn(7L);
+
+		assertEquals(7L, authService.obtenerProximoEstudianteId());
+	}
+
+	@Test
 	void crearUsuario_alumnoConDatosEstudiante_guardaIdAsignado() {
 		when(usuarioRepository.existsByNombreUsuarioIgnoreCase("alumno1")).thenReturn(false);
 		when(usuarioRepository.existsByEmailIgnoreCase("alumno1@colegio.cl")).thenReturn(false);
