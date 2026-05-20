@@ -2,6 +2,8 @@ package cl.bohiggins.bff_libroclases.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,5 +49,15 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(ResourceAccessException.class)
 	public ResponseEntity<Map<String, String>> errorRed(ResourceAccessException ex) {
 		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(ERROR, "Microservicio no disponible."));
+	}
+
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<Map<String, String>> noAutenticado(AuthenticationException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(ERROR, "Debe iniciar sesion."));
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<Map<String, String>> sinPermiso(AccessDeniedException ex) {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(ERROR, "No tiene permisos para esta accion."));
 	}
 }

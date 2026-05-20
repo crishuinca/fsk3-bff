@@ -1,6 +1,8 @@
 package cl.bohiggins.bff_libroclases.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
@@ -8,23 +10,37 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfig {
 
-	@Value("${ms-academico.url}")
-	private String urlAcademico;
+	@Value("${ms-academico.service-id:ms-academico}")
+	private String academicoServiceId;
 
-	@Value("${ms-asistencia.url}")
-	private String urlAsistencia;
+	@Value("${ms-asistencia.service-id:ms-asistencia}")
+	private String asistenciaServiceId;
+
+	@Value("${ms-academico.api-path:/api/v1}")
+	private String academicoApiPath;
+
+	@Value("${ms-asistencia.api-path:/api/v1}")
+	private String asistenciaApiPath;
 
 	@Bean
-	public RestClient academicoRestClient() {
-		return RestClient.builder()
-				.baseUrl(urlAcademico)
+	@LoadBalanced
+	RestClient.Builder loadBalancedRestClientBuilder() {
+		return RestClient.builder();
+	}
+
+	@Bean
+	public RestClient academicoRestClient(
+			@Qualifier("loadBalancedRestClientBuilder") RestClient.Builder builder) {
+		return builder
+				.baseUrl("http://" + academicoServiceId + academicoApiPath)
 				.build();
 	}
 
 	@Bean
-	public RestClient asistenciaRestClient() {
-		return RestClient.builder()
-				.baseUrl(urlAsistencia)
+	public RestClient asistenciaRestClient(
+			@Qualifier("loadBalancedRestClientBuilder") RestClient.Builder builder) {
+		return builder
+				.baseUrl("http://" + asistenciaServiceId + asistenciaApiPath)
 				.build();
 	}
 }
