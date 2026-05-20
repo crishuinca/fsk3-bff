@@ -2,7 +2,7 @@
 
 Backend For Frontend de la Plataforma de Libro de Clases Digital del Colegio Bernardo O'Higgins.
 
-Este servicio es la entrada principal del frontend hacia el backend. No tiene base de datos propia: consume `ms-academico` y `ms-asistencia`, combina sus respuestas y entrega datos más cómodos para la interfaz React.
+Este servicio es la entrada principal del frontend hacia el backend. Persiste usuarios JWT en MySQL (`libroclases_auth`), consume `ms-academico` y `ms-asistencia` via Eureka, y entrega datos cómodos para la interfaz React.
 
 ## Tecnologías
 
@@ -10,7 +10,8 @@ Este servicio es la entrada principal del frontend hacia el backend. No tiene ba
 - Spring Boot 3.5.7
 - Maven
 - Spring Web
-- RestClient
+- Spring Data JPA + MySQL
+- RestClient + Eureka
 - Resilience4j Circuit Breaker
 - Actuator
 - Bean Validation
@@ -28,23 +29,41 @@ El servicio corre en el puerto `8083`.
 - Circuit Breakers: `http://localhost:8083/actuator/circuitbreakers`
 - Eventos Circuit Breaker: `http://localhost:8083/actuator/circuitbreakerevents`
 
-## Servicios que consume
+## Servicios que consume (Eureka)
 
-El BFF necesita que estén levantados:
+El BFF localiza los microservicios por **nombre** via **Eureka** (no usa URLs fijas en localhost).
 
-- `ms-academico`: `http://localhost:8081/api/v1`
-- `ms-asistencia`: `http://localhost:8082/api/v1`
+| Servicio registrado | Puerto | API base |
+|---------------------|--------|----------|
+| `ms-academico` | 8081 | `/api/v1` |
+| `ms-asistencia` | 8082 | `/api/v1` |
 
-Configuración principal:
+Consola Eureka: http://localhost:8761
 
-```properties
-ms-academico.url=http://localhost:8081/api/v1
-ms-asistencia.url=http://localhost:8082/api/v1
-```
+## Base de datos MySQL
+
+- Base de este servicio: `libroclases_auth` (usuarios del login)
+- Usuario: `libroclases` / `clave123`
+- **Docker Compose compartido** (MySQL para todo el stack): `docker-compose.yml` en la raiz de este repo
+- Guia detallada: [docs/MYSQL.md](docs/MYSQL.md)
 
 ## Cómo ejecutar
 
-Primero levantar los microservicios:
+Primero levantar **MySQL** (desde la raiz de **este repositorio**):
+
+```powershell
+cd bff-libroclases
+docker compose up -d
+```
+
+Luego **Eureka**:
+
+```powershell
+cd "C:\Users\tobal\Desktop\Fullstack 3\eureka-server"
+.\mvnw.cmd spring-boot:run
+```
+
+Luego los microservicios:
 
 ```powershell
 cd "C:\Users\tobal\Desktop\Fullstack 3\ms-academico"
@@ -87,7 +106,7 @@ Estado actual:
 
 - 21 tests.
 - Cobertura global aproximada: 84% por líneas.
-- Regla JaCoCo: mínimo 60% para la capa `service`.
+- Regla JaCoCo: mínimo 80% para la capa `service`.
 
 ## CI/CD y SonarQube
 

@@ -1,6 +1,7 @@
 package cl.bohiggins.bff_libroclases.service;
 
 import cl.bohiggins.bff_libroclases.dto.CursoDto;
+import cl.bohiggins.bff_libroclases.dto.EstudianteAlumnoCreateRequest;
 import cl.bohiggins.bff_libroclases.dto.EstudianteDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,34 @@ public class AcademicoClient {
 
 	@CircuitBreaker(name = "academico", fallbackMethod = "estudianteFallback")
 	public EstudianteDto obtenerEstudiante(Long id) {
+		return consultarEstudiantePorId(id);
+	}
+
+	public EstudianteDto consultarEstudianteExistente(Long id) {
+		EstudianteDto estudiante = consultarEstudiantePorId(id);
+		if (estudiante == null || estudiante.id() == null) {
+			return null;
+		}
+		return estudiante;
+	}
+
+	public Long obtenerProximoEstudianteId() {
+		Long proximoId = cliente.get()
+				.uri("/estudiantes/proximoId")
+				.retrieve()
+				.body(Long.class);
+		return proximoId != null ? proximoId : 1L;
+	}
+
+	public EstudianteDto crearEstudiante(EstudianteAlumnoCreateRequest request) {
+		return cliente.post()
+				.uri("/addEstudiante")
+				.body(request)
+				.retrieve()
+				.body(EstudianteDto.class);
+	}
+
+	private EstudianteDto consultarEstudiantePorId(Long id) {
 		return cliente.get()
 				.uri("/estudianteByID/{id}", id)
 				.retrieve()

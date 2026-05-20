@@ -114,7 +114,7 @@ class LibroClasesServiceTest {
 				"12345678-9"
 		);
 		AnotacionDto creada = crearAnotacion();
-		when(academicoClient.obtenerEstudiante(2L)).thenReturn(estudiante);
+		when(academicoClient.consultarEstudianteExistente(2L)).thenReturn(estudiante);
 		when(asistenciaClient.crearAnotacion(any(AnotacionMsRequest.class))).thenReturn(creada);
 
 		AnotacionDto resultado = servicio.crearAnotacion(request);
@@ -137,7 +137,7 @@ class LibroClasesServiceTest {
 				"Sin observacion",
 				"12345678-9"
 		);
-		when(academicoClient.obtenerEstudiante(2L)).thenReturn(estudiante);
+		when(academicoClient.consultarEstudianteExistente(2L)).thenReturn(estudiante);
 
 		IllegalArgumentException error = assertThrows(
 				IllegalArgumentException.class,
@@ -145,6 +145,66 @@ class LibroClasesServiceTest {
 		);
 
 		assertEquals("El estudiante no tiene curso asociado.", error.getMessage());
+	}
+
+	@Test
+	void crearAnotacion_estudianteNoRegistrado_lanzaError() {
+		AnotacionCreateRequest request = new AnotacionCreateRequest(
+				99L,
+				LocalDate.of(2026, 5, 8),
+				"POSITIVA",
+				"Participa activamente",
+				"12345678-9"
+		);
+		when(academicoClient.consultarEstudianteExistente(99L)).thenReturn(null);
+
+		IllegalArgumentException error = assertThrows(
+				IllegalArgumentException.class,
+				() -> servicio.crearAnotacion(request)
+		);
+
+		assertEquals("No existe un estudiante registrado con el ID 99.", error.getMessage());
+	}
+
+	@Test
+	void crearAsistencia_completaCursoAntesDeEnviarAMicroservicio() {
+		EstudianteDto estudiante = crearEstudiante();
+		AsistenciaCreateRequest request = new AsistenciaCreateRequest(
+				2L,
+				LocalDate.of(2026, 5, 8),
+				"PRESENTE",
+				"Sin observacion",
+				"12345678-9"
+		);
+		AsistenciaDto creada = crearAsistencia();
+		when(academicoClient.consultarEstudianteExistente(2L)).thenReturn(estudiante);
+		when(asistenciaClient.crearAsistencia(any(AsistenciaMsRequest.class))).thenReturn(creada);
+
+		AsistenciaDto resultado = servicio.crearAsistencia(request);
+
+		ArgumentCaptor<AsistenciaMsRequest> captor = ArgumentCaptor.forClass(AsistenciaMsRequest.class);
+		verify(asistenciaClient).crearAsistencia(captor.capture());
+		assertSame(creada, resultado);
+		assertEquals(3L, captor.getValue().cursoId());
+	}
+
+	@Test
+	void crearAsistencia_estudianteNoRegistrado_lanzaError() {
+		AsistenciaCreateRequest request = new AsistenciaCreateRequest(
+				99L,
+				LocalDate.of(2026, 5, 8),
+				"PRESENTE",
+				"Sin observacion",
+				"12345678-9"
+		);
+		when(academicoClient.consultarEstudianteExistente(99L)).thenReturn(null);
+
+		IllegalArgumentException error = assertThrows(
+				IllegalArgumentException.class,
+				() -> servicio.crearAsistencia(request)
+		);
+
+		assertEquals("No existe un estudiante registrado con el ID 99.", error.getMessage());
 	}
 
 	private EstudianteDto crearEstudiante() {

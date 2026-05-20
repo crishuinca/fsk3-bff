@@ -67,7 +67,8 @@ public class LibroClasesService {
 	}
 
 	public AnotacionDto crearAnotacion(AnotacionCreateRequest request) {
-		Long cursoId = obtenerCursoIdDesdeEstudiante(request.estudianteId());
+		EstudianteDto estudiante = validarEstudianteRegistrado(request.estudianteId());
+		Long cursoId = obtenerCursoIdDesdeEstudiante(estudiante);
 		AnotacionMsRequest requestMs = new AnotacionMsRequest(
 				cursoId,
 				request.estudianteId(),
@@ -80,7 +81,8 @@ public class LibroClasesService {
 	}
 
 	public AsistenciaDto crearAsistencia(AsistenciaCreateRequest request) {
-		Long cursoId = obtenerCursoIdDesdeEstudiante(request.estudianteId());
+		EstudianteDto estudiante = validarEstudianteRegistrado(request.estudianteId());
+		Long cursoId = obtenerCursoIdDesdeEstudiante(estudiante);
 		AsistenciaMsRequest requestMs = new AsistenciaMsRequest(
 				cursoId,
 				request.estudianteId(),
@@ -92,8 +94,21 @@ public class LibroClasesService {
 		return asistenciaClient.crearAsistencia(requestMs);
 	}
 
-	private Long obtenerCursoIdDesdeEstudiante(Long estudianteId) {
-		EstudianteDto estudiante = academicoClient.obtenerEstudiante(estudianteId);
+	private EstudianteDto validarEstudianteRegistrado(Long estudianteId) {
+		if (estudianteId == null || estudianteId <= 0) {
+			throw new IllegalArgumentException("Debe indicar un ID de estudiante valido.");
+		}
+
+		EstudianteDto estudiante = academicoClient.consultarEstudianteExistente(estudianteId);
+		if (estudiante == null || estudiante.id() == null) {
+			throw new IllegalArgumentException(
+					"No existe un estudiante registrado con el ID " + estudianteId + ".");
+		}
+
+		return estudiante;
+	}
+
+	private Long obtenerCursoIdDesdeEstudiante(EstudianteDto estudiante) {
 		CursoDto curso = obtenerCursoDesdeEstudiante(estudiante);
 		if (curso.id() == null) {
 			throw new IllegalArgumentException("El estudiante no tiene curso asociado.");
