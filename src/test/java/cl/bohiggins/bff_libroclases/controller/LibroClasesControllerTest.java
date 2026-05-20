@@ -21,6 +21,7 @@ import cl.bohiggins.bff_libroclases.dto.AsistenciaDto;
 import cl.bohiggins.bff_libroclases.dto.CursoDto;
 import cl.bohiggins.bff_libroclases.dto.EstudianteDto;
 import cl.bohiggins.bff_libroclases.dto.PerfilEstudianteDto;
+import cl.bohiggins.bff_libroclases.service.AccesoEstudianteService;
 import cl.bohiggins.bff_libroclases.service.LibroClasesService;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +29,9 @@ class LibroClasesControllerTest {
 
 	@Mock
 	private LibroClasesService servicio;
+
+	@Mock
+	private AccesoEstudianteService accesoEstudianteService;
 
 	@InjectMocks
 	private LibroClasesController controller;
@@ -51,11 +55,12 @@ class LibroClasesControllerTest {
 		when(servicio.crearAnotacion(anotacionRequest)).thenReturn(anotacion);
 		when(servicio.crearAsistencia(asistenciaRequest)).thenReturn(asistencia);
 
-		assertSame(anotacionDetalle, controller.c_obtenerAnotacionDetalle(1L));
-		assertSame(asistenciaDetalle, controller.c_obtenerAsistenciaDetalle(1L));
-		assertSame(perfil, controller.c_obtenerPerfilEstudiante(2L));
-		assertSame(perfil, controller.c_obtenerPerfilEstudianteRut("21827564-8"));
-		assertSame(anotacion, controller.c_crearAnotacion(anotacionRequest));
-		assertSame(asistencia, controller.c_crearAsistencia(asistenciaRequest));
+		String usuario = "profesor1";
+		assertSame(anotacionDetalle, controller.c_obtenerAnotacionDetalle(1L, usuario));
+		assertSame(asistenciaDetalle, controller.c_obtenerAsistenciaDetalle(1L, usuario));
+		assertSame(perfil, controller.c_obtenerPerfilEstudiante(2L, usuario));
+		assertSame(perfil, controller.c_obtenerPerfilEstudianteRut("21827564-8", usuario));
+		assertSame(anotacion, controller.c_crearAnotacion(anotacionRequest, usuario));
+		assertSame(asistencia, controller.c_crearAsistencia(asistenciaRequest, usuario));
 	}
 }
