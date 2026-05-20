@@ -1,6 +1,8 @@
 package cl.bohiggins.bff_libroclases.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +18,7 @@ import cl.bohiggins.bff_libroclases.dto.AsistenciaCreateRequest;
 import cl.bohiggins.bff_libroclases.dto.AsistenciaDetalleDto;
 import cl.bohiggins.bff_libroclases.dto.AsistenciaDto;
 import cl.bohiggins.bff_libroclases.dto.PerfilEstudianteDto;
+import cl.bohiggins.bff_libroclases.service.AccesoEstudianteService;
 import cl.bohiggins.bff_libroclases.service.LibroClasesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,39 +33,66 @@ public class LibroClasesController {
 	@Autowired
 	private LibroClasesService servicio;
 
+	@Autowired
+	private AccesoEstudianteService accesoEstudianteService;
+
 	@Operation(summary = "Detalle de la anotacion con datos del estudiante y del curso")
 	@GetMapping("/anotacionDetalle/{id}")
-	public AnotacionDetalleDto c_obtenerAnotacionDetalle(@PathVariable Long id) {
-		return servicio.obtenerAnotacionDetalle(id);
+	public AnotacionDetalleDto c_obtenerAnotacionDetalle(
+			@PathVariable Long id,
+			@AuthenticationPrincipal String nombreUsuario) {
+		AnotacionDetalleDto detalle = servicio.obtenerAnotacionDetalle(id);
+		accesoEstudianteService.validarAccesoPorEstudianteId(nombreUsuario, detalle.anotacion().estudianteId());
+		return detalle;
 	}
 
 	@Operation(summary = "Detalle de la asistencia con datos del estudiante y del curso")
 	@GetMapping("/asistenciaDetalle/{id}")
-	public AsistenciaDetalleDto c_obtenerAsistenciaDetalle(@PathVariable Long id) {
-		return servicio.obtenerAsistenciaDetalle(id);
+	public AsistenciaDetalleDto c_obtenerAsistenciaDetalle(
+			@PathVariable Long id,
+			@AuthenticationPrincipal String nombreUsuario) {
+		AsistenciaDetalleDto detalle = servicio.obtenerAsistenciaDetalle(id);
+		accesoEstudianteService.validarAccesoPorEstudianteId(nombreUsuario, detalle.asistencia().estudianteId());
+		return detalle;
 	}
 
 	@Operation(summary = "Perfil completo: estudiante + curso + anotaciones + asistencias")
 	@GetMapping("/perfilEstudiante/{estudianteId}")
-	public PerfilEstudianteDto c_obtenerPerfilEstudiante(@PathVariable Long estudianteId) {
+	public PerfilEstudianteDto c_obtenerPerfilEstudiante(
+			@PathVariable Long estudianteId,
+			@AuthenticationPrincipal String nombreUsuario) {
+		accesoEstudianteService.validarAccesoPorEstudianteId(nombreUsuario, estudianteId);
 		return servicio.obtenerPerfilEstudiante(estudianteId);
 	}
 
 	@Operation(summary = "Perfil completo buscando estudiante por RUT")
 	@GetMapping("/perfilEstudianteRut/{rut}")
-	public PerfilEstudianteDto c_obtenerPerfilEstudianteRut(@PathVariable String rut) {
-		return servicio.obtenerPerfilEstudiantePorRut(rut);
+	public PerfilEstudianteDto c_obtenerPerfilEstudianteRut(
+			@PathVariable String rut,
+			@AuthenticationPrincipal String nombreUsuario) {
+		accesoEstudianteService.validarBusquedaPorRut(nombreUsuario);
+		PerfilEstudianteDto perfil = servicio.obtenerPerfilEstudiantePorRut(rut);
+		accesoEstudianteService.validarAccesoPorEstudianteId(nombreUsuario, perfil.estudiante().id());
+		return perfil;
 	}
 
-	@Operation(summary = "Registrar una anotacion desde el frontend")
+	@Operation(summary = "Registrar una anotacion desde el frontend (solo PROFESOR)")
 	@PostMapping("/anotaciones")
-	public AnotacionDto c_crearAnotacion(@Valid @RequestBody AnotacionCreateRequest request) {
+	@PreAuthorize("hasRole('PROFESOR')")
+	public AnotacionDto c_crearAnotacion(
+			@Valid @RequestBody AnotacionCreateRequest request,
+			@AuthenticationPrincipal String nombreUsuario) {
+		accesoEstudianteService.validarAccesoPorEstudianteId(nombreUsuario, request.estudianteId());
 		return servicio.crearAnotacion(request);
 	}
 
-	@Operation(summary = "Registrar una asistencia desde el frontend")
+	@Operation(summary = "Registrar una asistencia desde el frontend (PROFESOR o INSPECTOR)")
 	@PostMapping("/asistencias")
-	public AsistenciaDto c_crearAsistencia(@Valid @RequestBody AsistenciaCreateRequest request) {
+	@PreAuthorize("hasAnyRole('PROFESOR', 'INSPECTOR')")
+	public AsistenciaDto c_crearAsistencia(
+			@Valid @RequestBody AsistenciaCreateRequest request,
+			@AuthenticationPrincipal String nombreUsuario) {
+		accesoEstudianteService.validarAccesoPorEstudianteId(nombreUsuario, request.estudianteId());
 		return servicio.crearAsistencia(request);
 	}
 }
