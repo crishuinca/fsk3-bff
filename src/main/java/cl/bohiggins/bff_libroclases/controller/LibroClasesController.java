@@ -1,6 +1,7 @@
 package cl.bohiggins.bff_libroclases.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import cl.bohiggins.bff_libroclases.dto.AnotacionCreateRequest;
@@ -79,6 +81,7 @@ public class LibroClasesController {
 	@Operation(summary = "Registrar una anotacion desde el frontend (solo PROFESOR)")
 	@PostMapping("/anotaciones")
 	@PreAuthorize("hasRole('PROFESOR')")
+	@ResponseStatus(HttpStatus.CREATED)
 	public AnotacionDto c_crearAnotacion(
 			@Valid @RequestBody AnotacionCreateRequest request,
 			@AuthenticationPrincipal String nombreUsuario) {
@@ -89,6 +92,7 @@ public class LibroClasesController {
 	@Operation(summary = "Registrar una asistencia desde el frontend (PROFESOR o INSPECTOR)")
 	@PostMapping("/asistencias")
 	@PreAuthorize("hasAnyRole('PROFESOR', 'INSPECTOR')")
+	@ResponseStatus(HttpStatus.CREATED)
 	public AsistenciaDto c_crearAsistencia(
 			@Valid @RequestBody AsistenciaCreateRequest request,
 			@AuthenticationPrincipal String nombreUsuario) {

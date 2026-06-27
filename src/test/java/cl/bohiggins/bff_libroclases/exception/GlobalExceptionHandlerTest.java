@@ -31,4 +31,21 @@ class GlobalExceptionHandlerTest {
 		assertNotNull(respuesta.getBody());
 		assertEquals("Microservicio no disponible.", respuesta.getBody().get("error"));
 	}
+
+	@Test
+	void noEncontrado_retorna404() {
+		ResponseEntity<Map<String, String>> respuesta = handler
+				.noEncontrado(new RecursoNoEncontradoException("Recurso no encontrado."));
+
+		assertEquals(HttpStatus.NOT_FOUND, respuesta.getStatusCode());
+		assertEquals("Recurso no encontrado.", respuesta.getBody().get("error"));
+	}
+
+	@Test
+	void interno_retorna500() {
+		ResponseEntity<Map<String, String>> respuesta = handler.interno(new RuntimeException("fallo"));
+
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, respuesta.getStatusCode());
+		assertEquals("Error interno del servidor.", respuesta.getBody().get("error"));
+	}
 }

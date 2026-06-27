@@ -19,6 +19,11 @@ public class GlobalExceptionHandler {
 
 	private static final String ERROR = "error";
 
+	@ExceptionHandler(RecursoNoEncontradoException.class)
+	public ResponseEntity<Map<String, String>> noEncontrado(RecursoNoEncontradoException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(ERROR, ex.getMessage()));
+	}
+
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<Map<String, String>> negocio(IllegalArgumentException ex) {
 		return ResponseEntity.badRequest().body(Map.of(ERROR, ex.getMessage()));
@@ -59,5 +64,11 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<Map<String, String>> sinPermiso(AccessDeniedException ex) {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(ERROR, "No tiene permisos para esta accion."));
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<Map<String, String>> interno(Exception ex) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of(ERROR, "Error interno del servidor."));
 	}
 }
