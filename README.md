@@ -2,7 +2,16 @@
 
 Backend For Frontend de la Plataforma de Libro de Clases Digital del Colegio Bernardo O'Higgins.
 
-Este servicio es la entrada principal del frontend hacia el backend. Persiste usuarios JWT en MySQL (`libroclases_auth`), consume `ms-academico` y `ms-asistencia` via Eureka, y entrega datos cómodos para la interfaz React.
+Este servicio orquesta `ms-academico` y `ms-asistencia` via Eureka. El frontend entra por **api-gateway** (8080), no directamente por este puerto.
+
+## Orden de arranque
+
+1. MySQL (`docker compose up -d` en este repo)
+2. eureka-server (8761)
+3. ms-academico (8081) y ms-asistencia (8082)
+4. **bff-libroclases** (8083)
+5. api-gateway (8080)
+6. frontend (5173)
 
 ## Tecnologías
 
@@ -78,7 +87,14 @@ cd "C:\Users\tobal\Desktop\Fullstack 3\ms-asistencia"
 Luego levantar el BFF:
 
 ```powershell
-cd "C:\Users\tobal\Desktop\Fullstack 3\bff-libroclases"
+cd fsk3-bff
+.\mvnw.cmd spring-boot:run
+```
+
+Luego **api-gateway** (puerto 8080):
+
+```powershell
+cd fsk3-api-gateway
 .\mvnw.cmd spring-boot:run
 ```
 

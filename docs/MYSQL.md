@@ -34,7 +34,8 @@ Root (solo admin): `root` / `root`
 3. **ms-academico** — puerto 8081
 4. **ms-asistencia** — puerto 8082
 5. **bff-libroclases** — puerto 8083
-6. **frontend-libroclases** — puerto 5173
+6. **api-gateway** — puerto 8080
+7. **frontend-libroclases** — puerto 5173
 
 ## Herramientas GUI
 
